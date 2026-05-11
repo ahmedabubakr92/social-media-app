@@ -136,6 +136,24 @@ export default function Navbar() {
               >
                 Create Community
               </Link>
+
+              <div className="border-t border-white/10 mt-2 pt-2">
+                {user ? (
+                  <button
+                    onClick={signOut}
+                    className="w-full text-left px-3 py-2 rounded-md text-base font-medium bg-red-500 text-white"
+                  >
+                    Sign out
+                  </button>
+                ) : (
+                  <button
+                    onClick={signInWithGitHub}
+                    className="w-full text-left px-3 py-2 rounded-md text-base font-medium bg-blue-500 text-white"
+                  >
+                    Sign in with GitHub
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}

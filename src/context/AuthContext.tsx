@@ -4,8 +4,8 @@ import { supabase } from "../lib/supabaseClient";
 
 interface AuthContextType {
   user: User | null;
-  signInWithGitHub: () => void;
-  signOut: () => void;
+  signInWithGitHub: () => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -14,9 +14,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({data: {session}}) => {
-        setUser(session?.user ?? null)
-    })
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error("Failed to fetch session:", error.message);
+        return;
+      }
+      setUser(session?.user ?? null);
+    });
 
     const {data: listener} = supabase.auth.onAuthStateChange((_, session) => {
         setUser(session?.user ?? null)
@@ -27,12 +31,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  function signInWithGitHub() {
-    supabase.auth.signInWithOAuth({ provider: "github" });
+  async function signInWithGitHub() {
+    const { error } = await supabase.auth.signInWithOAuth({ provider: "github" });
+    if (error) console.error("GitHub sign-in failed:", error.message);
   }
 
-  function signOut() {
-    supabase.auth.signOut();
+  async function signOut() {
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error("Sign-out failed:", error.message);
   }
 
   return (
