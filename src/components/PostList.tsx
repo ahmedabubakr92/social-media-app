@@ -27,7 +27,7 @@ export default function PostList() {
     queryFn: fetchPosts,
   });
 
-  if (isLoading) <div>Loading posts...</div>;
+  if (isLoading) return <div>Loading posts...</div>;
 
   if (error) {
     return <div>Error: {error.message}</div>;

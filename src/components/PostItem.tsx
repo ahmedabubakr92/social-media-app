@@ -8,7 +8,7 @@ interface Props {
 export default function PostItem({ post }: Props) {
   return (
     <div className="relative group">
-      <div className="absolute -inset-1 rounded-[20px] bg-linear-to-r from-pink-600 to-purple-600 blur-sm opacity-0 group-hover:opacity-50 trasnition duration-300 pointer-events-none" />
+      <div className="absolute -inset-1 rounded-[20px] bg-linear-to-r from-pink-600 to-purple-600 blur-sm opacity-0 group-hover:opacity-50 transition duration-300 pointer-events-none" />
       <Link to="/post" className="block relative z-10">
         <div className="w-80 bg-[rgb(24,27,32)] border border-[rgb(84,90,106)] rounded-[20px] text-white flex flex-col p-5 overflow-hidden transition-colors duration-300 group-hover:bg-gray-800">
           {/* Header: Avatar and Title */}
