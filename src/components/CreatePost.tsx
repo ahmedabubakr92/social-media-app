@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from "react";
+import { useState, useRef, type ChangeEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "../lib/supabaseClient";
 
@@ -24,12 +24,16 @@ async function createPost(post: PostInput, imageFile: File) {
     .from("posts")
     .insert({ ...post, image_url: publicUrlData.publicUrl });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    await supabase.storage.from("posts-images").remove([filePath]);
+    throw new Error(error.message);
+  }
 
   return data;
 }
 
 export default function CreatePost() {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -42,6 +46,7 @@ export default function CreatePost() {
       setTitle("");
       setContent("");
       setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     },
   });
 
@@ -54,7 +59,9 @@ export default function CreatePost() {
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
+      return;
     }
+    setSelectedFile(null);
   }
 
   return (
@@ -92,6 +99,7 @@ export default function CreatePost() {
           Upload Image
         </label>
         <input
+          ref={fileInputRef}
           type="file"
           name="image"
           id="image"
