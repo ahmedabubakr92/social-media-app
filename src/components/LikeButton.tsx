@@ -17,44 +17,40 @@ async function fetchUserVote(
   postId: number,
   userId: string,
 ): Promise<number | null> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("votes")
     .select("vote")
     .eq("post_id", postId)
     .eq("user_id", userId)
     .maybeSingle();
+  if (error) throw new Error(`Failed to fetch vote for post ${postId}: ${error.message}`);
   return data?.vote ?? null;
 }
 
 async function vote(voteValue: number, postId: number, userId: string) {
-  const { data: existingVote } = await supabase
+  const { data: existingVote, error: readError } = await supabase
     .from("votes")
     .select("*")
     .eq("post_id", postId)
     .eq("user_id", userId)
     .maybeSingle();
 
-  if (existingVote) {
-    // Liked -> 0, Like -> -1
-    if (existingVote.vote === voteValue) {
-      const { error } = await supabase
-        .from("votes")
-        .delete()
-        .eq("id", existingVote.id);
+  if (readError) throw new Error(`Failed to read existing vote: ${readError.message}`);
 
-      if (error) throw new Error(error.message);
-    } else {
-      const { error } = await supabase
-        .from("votes")
-        .update({ vote: voteValue })
-        .eq("id", existingVote.id);
+  if (existingVote && existingVote.vote === voteValue) {
+    const { error } = await supabase
+      .from("votes")
+      .delete()
+      .eq("id", existingVote.id);
 
-      if (error) throw new Error(error.message);
-    }
+    if (error) throw new Error(error.message);
   } else {
     const { error } = await supabase
       .from("votes")
-      .insert({ post_id: postId, user_id: userId, vote: voteValue });
+      .upsert(
+        { post_id: postId, user_id: userId, vote: voteValue },
+        { onConflict: "post_id,user_id" }
+      );
 
     if (error) throw new Error(error.message);
   }
